@@ -15,8 +15,9 @@ class NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.black12, width: 0.5)),
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.white,
@@ -24,7 +25,6 @@ class NavBar extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         currentIndex: currentIndex,
         onTap: (index) {
-          if (index < 0) return;
           onTap(index);
         },
         selectedItemColor: primaryColor,
@@ -47,16 +47,21 @@ class NavBar extends StatelessWidget {
             icon: Icon(currentIndex == 1
                 ? Icons.calendar_month
                 : Icons.calendar_month_outlined),
-            label: 'Randevularım',
+            label: 'Randevular',
           ),
           BottomNavigationBarItem(
             icon: Icon(currentIndex == 2
-                ? Icons.list_alt
-                : Icons.list_alt_outlined), // Dolu/Boş ikon efekti
-            label: 'Danışanlarım',
+                ? Icons.restaurant_menu
+                : Icons.restaurant_menu_outlined),
+            label: 'Diyetler',
           ),
           BottomNavigationBarItem(
-            icon: Icon(currentIndex == 3 ? Icons.person : Icons.person_outline),
+            icon:
+                Icon(currentIndex == 3 ? Icons.groups : Icons.groups_outlined),
+            label: 'Danışanlar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(currentIndex == 4 ? Icons.person : Icons.person_outline),
             label: 'Profilim',
           ),
         ],

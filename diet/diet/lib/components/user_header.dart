@@ -8,30 +8,44 @@ class UserHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            const CircleAvatar(
-              radius: 25,
-              backgroundImage: AssetImage('assets/images/dietitian.jpg'),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Dr. Sarah Johnson',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Expanded(
+          child: Row(
+            children: [
+              const CircleAvatar(
+                radius: 25,
+                backgroundColor: Color(0xFF382aae),
+                backgroundImage: AssetImage('assets/images/dietitian.jpg'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Dyt. Elif Yılmaz',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      'Uzman Diyetisyen',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
-                Text('Registered Dietitian',
-                    style: TextStyle(
-                      fontSize: 16,
-                    )),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
         IconButton(
-          icon: const Icon(Icons.notifications_none, size: 28),
+          icon: const Icon(Icons.notifications_none,
+              size: 28, color: Colors.black),
           onPressed: () {},
         ),
       ],

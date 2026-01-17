@@ -15,18 +15,38 @@ class _ClientsPageState extends State<ClientsPage> {
   final ClientService _clientService = ClientService();
   late Future<List<ClientModel>> _clientsFuture;
 
+  List<ClientModel> _allClients = [];
+  List<ClientModel> _filteredClients = [];
+  final TextEditingController _searchController = TextEditingController();
+
   final Color primaryColor = const Color(0xFF382aae);
-  final Color scaffoldBackground = Colors.white;
+  final Color scaffoldBackground = const Color(0xFFF9FAFB);
 
   @override
   void initState() {
     super.initState();
-    _clientsFuture = _clientService.getClients();
+    _loadClients();
   }
 
-  void _refreshList() {
+  void _loadClients() {
     setState(() {
-      _clientsFuture = _clientService.getClients();
+      _clientsFuture = _clientService.getClients().then((value) {
+        _allClients = value;
+        _filteredClients = value;
+        return value;
+      });
+    });
+  }
+
+  void _filterClients(String query) {
+    final filtered = _allClients.where((client) {
+      final fullName = client.fullName?.toLowerCase() ?? '';
+      final input = query.toLowerCase();
+      return fullName.contains(input);
+    }).toList();
+
+    setState(() {
+      _filteredClients = filtered;
     });
   }
 
@@ -34,45 +54,81 @@ class _ClientsPageState extends State<ClientsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: scaffoldBackground,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddClientPage()),
+          );
+          if (result == true) {
+            _loadClients();
+          }
+        },
+        backgroundColor: primaryColor,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBackground,
         elevation: 0,
-        centerTitle: true,
-        title: Text(
-          "Danışanlarım",
-          style: TextStyle(
-            color: primaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
+        centerTitle: false,
+        title: Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Text(
+            "Danışanlar",
+            style: TextStyle(
+              color: Colors.black.withOpacity(0.8),
+              fontWeight: FontWeight.w800,
+              fontSize: 26,
+              letterSpacing: -0.5,
+            ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sort, color: Colors.grey),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               child: TextField(
+                controller: _searchController,
+                onChanged: _filterClients,
                 decoration: InputDecoration(
-                  hintText: 'İsim ile ara...',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  hintText: 'Danışan ara...',
+                  hintStyle:
+                      TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: primaryColor.withOpacity(0.7)),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear,
+                              color: Colors.grey, size: 20),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterClients('');
+                          },
+                        )
+                      : null,
                 ),
               ),
             ),
           ),
+
+          // --- LİSTE ---
           Expanded(
             child: FutureBuilder<List<ClientModel>>(
               future: _clientsFuture,
@@ -81,80 +137,55 @@ class _ClientsPageState extends State<ClientsPage> {
                   return Center(
                       child: CircularProgressIndicator(color: primaryColor));
                 } else if (snapshot.hasError) {
-                  return Center(child: Text("Hata: ${snapshot.error}"));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("Kayıtlı danışan yok."));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 40, color: Colors.grey.shade400),
+                        const SizedBox(height: 10),
+                        Text("Bağlantı hatası oluştu",
+                            style: TextStyle(color: Colors.grey.shade600)),
+                      ],
+                    ),
+                  );
                 }
 
-                final clients = snapshot.data!;
+                if (_filteredClients.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.person_off_outlined,
+                            size: 60, color: Colors.grey.shade300),
+                        const SizedBox(height: 10),
+                        Text(
+                          _searchController.text.isEmpty
+                              ? "Henüz danışan eklemediniz."
+                              : "Aranan kriterde danışan bulunamadı.",
+                          style: TextStyle(color: Colors.grey.shade500),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: clients.length,
+                  padding: const EdgeInsets.only(
+                      left: 20, right: 20, top: 10, bottom: 100),
+                  itemCount: _filteredClients.length,
+                  physics: const BouncingScrollPhysics(),
                   separatorBuilder: (context, index) =>
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     return ClientCard(
-                      client: clients[index],
+                      client: _filteredClients[index],
                       primaryColor: primaryColor,
-                      onTap: () {
-                        print("${clients[index].fullName} tıklandı");
-                      },
+                      onTap: () {},
                     );
                   },
                 );
               },
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.08),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const AddClientPage()),
-                      );
-
-                      if (result == true) {
-                        _refreshList();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      shadowColor: primaryColor.withOpacity(0.4),
-                    ),
-                    icon: const Icon(Icons.add, color: Colors.white, size: 22),
-                    label: const Text(
-                      "Yeni Danışan",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],

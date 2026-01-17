@@ -9,107 +9,92 @@ class ClientCard extends StatelessWidget {
   const ClientCard({
     super.key,
     required this.client,
-    this.primaryColor = const Color.fromARGB(255, 56, 42, 174),
+    this.primaryColor = const Color(0xFF382aae),
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    bool hasAppointment = client.lastAppointmentDate != "N/A" &&
-        client.lastAppointmentDate != null;
+    String initials = "";
+    if (client.fullName != null && client.fullName!.isNotEmpty) {
+      List<String> names = client.fullName!.trim().split(" ");
+      if (names.isNotEmpty) {
+        initials += names[0][0].toUpperCase();
+        if (names.length > 1) {
+          initials += names.last[0].toUpperCase();
+        }
+      }
+    }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: primaryColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: primaryColor.withOpacity(0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          splashColor: Colors.white.withOpacity(0.1),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        client.fullName ?? 'İsimsiz',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        client.email ?? '',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 14,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: hasAppointment
-                        ? Colors.white.withOpacity(0.2)
-                        : Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: hasAppointment
-                            ? Colors.white.withOpacity(0.1)
-                            : Colors.orangeAccent.withOpacity(0.4),
-                        width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        hasAppointment
-                            ? Icons.calendar_today
-                            : Icons.warning_amber_rounded,
-                        color:
-                            hasAppointment ? Colors.white : Colors.orangeAccent,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        hasAppointment
-                            ? client.lastAppointmentDate!.split('T')[0]
-                            : "Randevu Yok",
-                        style: TextStyle(
-                          color: hasAppointment
-                              ? Colors.white
-                              : Colors.orangeAccent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              spreadRadius: 2,
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
-          ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              height: 60,
+              width: 60,
+              decoration: BoxDecoration(
+                color: primaryColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  initials,
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    client.fullName ?? "İsimsiz Danışan",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    client.email ?? "E-posta yok",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.grey.shade300,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );
